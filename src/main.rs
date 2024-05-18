@@ -68,9 +68,8 @@ struct Config {
     #[arg(long)]
     dependency: Option<String>,
 
-    // TODO: Make these options dependent.
     /// Only get versions depending on the folling version of the specified dependency
-    #[arg(long)]
+    #[arg(long, requires = "dependency")]
     dependency_version: Option<Version>,
 
     /// Limit number of concurrent requests in flight
