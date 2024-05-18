@@ -79,6 +79,10 @@ struct Config {
     /// Verify checksum of all previously downloaded crates
     #[arg(long)]
     verify: bool,
+
+    /// Whether to actually create download directories and download crates
+    #[arg(long)]
+    dry_run: bool,
 }
 
 fn setup_tracing() {
@@ -494,13 +498,17 @@ fn main() -> anyhow::Result<()> {
         .vec
         .sort_unstable_by(|a, b| cmp_ignore_ascii_case(&a.name, &b.name));
 
-    let rt = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()?;
-
-    rt.block_on(async {
-        download_versions(&config, versions).await?;
-        info!("finished in {:?}", millis(begin.elapsed()));
+    if config.dry_run {
         Ok(())
-    })
+    } else {
+        let rt = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()?;
+
+        rt.block_on(async {
+            download_versions(&config, versions).await?;
+            info!("finished in {:?}", millis(begin.elapsed()));
+            Ok(())
+        })
+    }
 }
